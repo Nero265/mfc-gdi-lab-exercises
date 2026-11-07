@@ -62,6 +62,8 @@ void CIND19546View::OnDraw(CDC* pDC)
 		return;
 
 	// TODO: add draw code for native data here
+
+	int nSaved = pDC->SaveDC();
 	int oldMode = pDC->SetGraphicsMode(GM_ADVANCED);
 
 	CRect rect;
@@ -89,7 +91,7 @@ void CIND19546View::OnDraw(CDC* pDC)
 		pDC->SelectObject(pOldPen);
 	}
 
-	pDC->SetGraphicsMode(oldMode);
+	pDC->RestoreDC(nSaved);
 }
 
 void CIND19546View::Translate(CDC* pDC, float dX, float dY, bool rightMultiply)
@@ -132,26 +134,104 @@ void CIND19546View::Rotate(CDC* pDC, float angle, bool rightMultiply)
 
 void CIND19546View::DrawFigure(CDC* pDC)
 {
+	const float DEG = PI / 180.0f;
+
 	int nSavedDC = pDC->SaveDC();
 
 	CBrush potBrush(RGB(205, 133, 63));
-	CPen potPen(PS_SOLID, 1, RGB(0, 0, 0));
+	CBrush cactusBrush(RGB(0, 204, 0));
+	CPen blackPen(PS_SOLID, 1, RGB(0, 0, 0));
 
-	CBrush* pOldBrush = pDC->SelectObject(&potBrush);
-	CPen* pOldPen = pDC->SelectObject(&potPen);
+	pDC->SelectObject(&blackPen);
+	pDC->SelectObject(&cactusBrush);
 
-	pDC->Rectangle(187, 425, 312, 450);
+	//kaktus
+	int nCactus = pDC->SaveDC();
 
+	Translate(pDC, 250, 425, false);
+	Rotate(pDC, m_angleSegment1, false);
+	int nRoot = pDC->SaveDC();                       // sistem u korenu
+
+	DrawSegment(pDC, true, 1.5f, 1.0f, true);        // prvi segment, ide do J1
+
+	// ---- leva grana ----
+	{
+		int nBranch = pDC->SaveDC();
+		Rotate(pDC, -45 * DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, true);
+
+		int n = pDC->SaveDC();
+		Rotate(pDC, -45 * DEG, false);
+		DrawSegment(pDC, false, 0.75f, 0.7f, false);
+		pDC->RestoreDC(n);
+
+		n = pDC->SaveDC();
+		Rotate(pDC, 45 * DEG, false);
+		DrawSegment(pDC, false, 0.75f, 1.0f, true);
+		DrawJoint(pDC);
+		DrawSegment(pDC, false, 1.1f, 0.9f, false);
+		DrawJoint(pDC);
+		pDC->RestoreDC(n);
+
+		DrawJoint(pDC);
+		pDC->RestoreDC(nBranch);
+	}
+
+	// srednja grana
+	{
+		int nBranch = pDC->SaveDC();
+		DrawSegment(pDC, false, 0.4f, 0.8f, false);
+		pDC->RestoreDC(nBranch);
+	}
+
+	//desna grana 
+	{
+		int nBranch = pDC->SaveDC();
+		Rotate(pDC, 45 * DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, true);
+
+		int n = pDC->SaveDC();
+		Rotate(pDC, -45 * DEG + m_angleSegment2, false);
+		DrawSegment(pDC, true, 0.75f, 0.9f, false);
+		pDC->RestoreDC(n);
+
+		n = pDC->SaveDC();
+		Rotate(pDC, 45 * DEG, false);
+		DrawSegment(pDC, false, 0.75f, 1.0f, true);
+
+		int m = pDC->SaveDC();
+		Rotate(pDC, -45 * DEG, false);
+		DrawSegment(pDC, false, 0.75f, 0.75f, false);
+		pDC->RestoreDC(m);
+
+		m = pDC->SaveDC();
+		Rotate(pDC, 45 * DEG, false);
+		DrawSegment(pDC, false, 0.75f, 0.75f, false);
+		pDC->RestoreDC(m);
+
+		DrawJoint(pDC);                              
+		pDC->RestoreDC(n);
+
+		DrawJoint(pDC);                             
+		pDC->RestoreDC(nBranch);
+	}
+
+	DrawJoint(pDC);                                  
+
+	pDC->RestoreDC(nRoot);
+	DrawJoint(pDC);                                  
+
+	pDC->RestoreDC(nCactus);                         
+
+	
+	//saksijaa
+	pDC->SelectObject(&potBrush);
+	pDC->Rectangle(187, 430, 312, 450);
 	CPoint pot[4] = {
-		CPoint(200, 450),
-		CPoint(212, 500),
-		CPoint(287, 500),
-		CPoint(300, 450)
+		CPoint(200, 450), CPoint(212, 500),
+		CPoint(287, 500), CPoint(300, 450)
 	};
 	pDC->Polygon(pot, 4);
-
-	pDC->SelectObject(pOldBrush);
-	pDC->SelectObject(pOldPen);
 
 	pDC->RestoreDC(nSavedDC);
 }
@@ -164,6 +244,24 @@ void CIND19546View::DrawMetafilePart(CDC* pDC, CString filename, CRect rect)
 		pDC->PlayMetaFile(hEmf, &rect);
 		DeleteEnhMetaFile(hEmf);
 	}
+}
+
+void CIND19546View::DrawSegment(CDC* pDC, bool light, float sX, float sY, bool joint)
+{
+	int nSaved = pDC->SaveDC();
+	Scale(pDC, sX, sY, false);
+	DrawMetafilePart(pDC, light ? _T("cactus_part_light.emf") : _T("cactus_part.emf"),
+		CRect(-20, -80, 20, 0));
+	pDC->RestoreDC(nSaved);
+
+	if (joint) {
+		Translate(pDC, 0, -75.0f * sY, false);
+	}
+}
+
+void CIND19546View::DrawJoint(CDC* pDC)
+{
+	pDC->Ellipse(-10, -10, 10, 10);
 }
 
 // CIND19546View printing
@@ -217,6 +315,23 @@ void CIND19546View::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 		Invalidate();
 	}
+	else if (nChar == 'a' || nChar == 'A') {
+		m_angleSegment1 -= 0.05f;
+		Invalidate();
+	}
+	else if (nChar == 'd' || nChar == 'D') {
+		m_angleSegment1 += 0.05f;
+		Invalidate();
+	}
+	else if (nChar == 'q' || nChar == 'Q') {
+		m_angleSegment2 -= 0.05f; 
+		Invalidate(); 
+	}
+	else if (nChar == 'e' || nChar == 'E') {
+		m_angleSegment2 += 0.05f; 
+		Invalidate(); 
+	}
+
 	CView::OnChar(nChar, nRepCnt, nFlags);
 }
 

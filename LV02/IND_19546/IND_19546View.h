@@ -22,6 +22,8 @@ public:
 	void Rotate(CDC* pDC, float angle, bool rightMultiply);
 	void DrawFigure(CDC* pDC);
 	void DrawMetafilePart(CDC* pDC, CString filename, CRect rect);
+	void DrawSegment(CDC* pDC, bool light, float sX, float sY, bool joint);
+	void DrawJoint(CDC* pDC);
 
 // Overrides
 public:
@@ -42,6 +44,9 @@ public:
 
 protected:
 	bool m_showGrid = true;
+	float  m_angleSegment1 = 0.0f;
+	float  m_angleSegment2 = 0.0f;
+	const float PI = 3.14159265f;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()
