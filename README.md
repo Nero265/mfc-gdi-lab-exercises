@@ -4,7 +4,7 @@ Ovaj repozitorijum sadrži rešenja laboratorijskih vežbi iz predmeta **Računa
 
 ## 🛠 Tehnologije i alati
 * **Jezik:** C++
-* **Okruženje:** Visual Studio (2022)
+* **Okruženje:** Visual Studio (2026)
 * **Tehnologija:** MFC / Win32 API / GDI (Graphics Device Interface)
 
 ## 📌 Kratak opis urađenog rada
