@@ -63,14 +63,7 @@ void CIND19546View::OnDraw(CDC* pDC)
 
 	// TODO: add draw code for native data here
 
-	int nSaved = pDC->SaveDC();
 	int oldMode = pDC->SetGraphicsMode(GM_ADVANCED);
-
-	CRect rect;
-	GetClientRect(&rect);
-
-	pDC->SetWindowExt(500, 500);
-	pDC->SetViewportExt(rect.right, rect.bottom);
 
 	DrawFigure(pDC);
 
@@ -91,7 +84,7 @@ void CIND19546View::OnDraw(CDC* pDC)
 		pDC->SelectObject(pOldPen);
 	}
 
-	pDC->RestoreDC(nSaved);
+	pDC->SetGraphicsMode(oldMode);
 }
 
 void CIND19546View::Translate(CDC* pDC, float dX, float dY, bool rightMultiply)
@@ -136,92 +129,94 @@ void CIND19546View::DrawFigure(CDC* pDC)
 {
 	const float DEG = PI / 180.0f;
 
-	int nSavedDC = pDC->SaveDC();
+	XFORM xInit;
+	pDC->GetWorldTransform(&xInit);
 
 	CBrush potBrush(RGB(205, 133, 63));
 	CBrush cactusBrush(RGB(0, 204, 0));
 	CPen blackPen(PS_SOLID, 1, RGB(0, 0, 0));
 
-	pDC->SelectObject(&blackPen);
-	pDC->SelectObject(&cactusBrush);
+	CPen* pOldPen = pDC->SelectObject(&blackPen);
+	CBrush* pOldBrush = pDC->SelectObject(&cactusBrush);
 
 	//kaktus
-	int nCactus = pDC->SaveDC();
-
 	Translate(pDC, 250, 425, false);
 	Rotate(pDC, m_angleSegment1, false);
-	int nRoot = pDC->SaveDC();                       // sistem u korenu
+	XFORM xRoot;
+	pDC->GetWorldTransform(&xRoot);
 
 	DrawSegment(pDC, true, 1.5f, 1.0f, true);        // prvi segment, ide do J1
 
 	// ---- leva grana ----
 	{
-		int nBranch = pDC->SaveDC();
+		XFORM xBranch, x;
+		pDC->GetWorldTransform(&xBranch);
 		Rotate(pDC, -45 * DEG, false);
 		DrawSegment(pDC, false, 0.5f, 1.0f, true);
 
-		int n = pDC->SaveDC();
+		pDC->GetWorldTransform(&x);
 		Rotate(pDC, -45 * DEG, false);
 		DrawSegment(pDC, false, 0.75f, 0.7f, false);
-		pDC->RestoreDC(n);
+		pDC->SetWorldTransform(&x);
 
-		n = pDC->SaveDC();
+		pDC->GetWorldTransform(&x);
 		Rotate(pDC, 45 * DEG, false);
 		DrawSegment(pDC, false, 0.75f, 1.0f, true);
 		DrawJoint(pDC);
 		DrawSegment(pDC, false, 1.1f, 0.9f, false);
 		DrawJoint(pDC);
-		pDC->RestoreDC(n);
+		pDC->SetWorldTransform(&x);
 
 		DrawJoint(pDC);
-		pDC->RestoreDC(nBranch);
+		pDC->SetWorldTransform(&xBranch);
 	}
 
 	// srednja grana
 	{
-		int nBranch = pDC->SaveDC();
+		XFORM xBranch;
+		pDC->GetWorldTransform(&xBranch);
 		DrawSegment(pDC, false, 0.4f, 0.8f, false);
-		pDC->RestoreDC(nBranch);
+		pDC->SetWorldTransform(&xBranch);
 	}
 
 	//desna grana 
 	{
-		int nBranch = pDC->SaveDC();
+		XFORM xBranch, x, y;
+		pDC->GetWorldTransform(&xBranch);
 		Rotate(pDC, 45 * DEG, false);
 		DrawSegment(pDC, false, 0.5f, 1.0f, true);
 
-		int n = pDC->SaveDC();
+		pDC->GetWorldTransform(&x);
 		Rotate(pDC, -45 * DEG + m_angleSegment2, false);
 		DrawSegment(pDC, true, 0.75f, 0.9f, false);
-		pDC->RestoreDC(n);
+		pDC->SetWorldTransform(&x);
 
-		n = pDC->SaveDC();
+		pDC->GetWorldTransform(&x);
 		Rotate(pDC, 45 * DEG, false);
 		DrawSegment(pDC, false, 0.75f, 1.0f, true);
 
-		int m = pDC->SaveDC();
+		pDC->GetWorldTransform(&y);
 		Rotate(pDC, -45 * DEG, false);
 		DrawSegment(pDC, false, 0.75f, 0.75f, false);
-		pDC->RestoreDC(m);
+		pDC->SetWorldTransform(&y);
 
-		m = pDC->SaveDC();
+		pDC->GetWorldTransform(&y);
 		Rotate(pDC, 45 * DEG, false);
 		DrawSegment(pDC, false, 0.75f, 0.75f, false);
-		pDC->RestoreDC(m);
+		pDC->SetWorldTransform(&y);
 
 		DrawJoint(pDC);                              
-		pDC->RestoreDC(n);
+		pDC->SetWorldTransform(&x);
 
 		DrawJoint(pDC);                             
-		pDC->RestoreDC(nBranch);
+		pDC->SetWorldTransform(&xBranch);
 	}
 
 	DrawJoint(pDC);                                  
-
-	pDC->RestoreDC(nRoot);
+	pDC->SetWorldTransform(&xRoot);
 	DrawJoint(pDC);                                  
 
-	pDC->RestoreDC(nCactus);                         
+	pDC->SetWorldTransform(&xInit); //vracam se na staroo
 
 	
 	//saksijaa
@@ -233,7 +228,8 @@ void CIND19546View::DrawFigure(CDC* pDC)
 	};
 	pDC->Polygon(pot, 4);
 
-	pDC->RestoreDC(nSavedDC);
+	pDC->SelectObject(pOldBrush);
+	pDC->SelectObject(pOldPen);
 }
 
 void CIND19546View::DrawMetafilePart(CDC* pDC, CString filename, CRect rect)
@@ -248,11 +244,14 @@ void CIND19546View::DrawMetafilePart(CDC* pDC, CString filename, CRect rect)
 
 void CIND19546View::DrawSegment(CDC* pDC, bool light, float sX, float sY, bool joint)
 {
-	int nSaved = pDC->SaveDC();
+	XFORM xOld;
+	pDC->GetWorldTransform(&xOld);
+
 	Scale(pDC, sX, sY, false);
 	DrawMetafilePart(pDC, light ? _T("cactus_part_light.emf") : _T("cactus_part.emf"),
 		CRect(-20, -80, 20, 0));
-	pDC->RestoreDC(nSaved);
+	
+	pDC->SetWorldTransform(&xOld);
 
 	if (joint) {
 		Translate(pDC, 0, -75.0f * sY, false);
