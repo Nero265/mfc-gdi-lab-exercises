@@ -13,6 +13,15 @@ Projekat demonstrira osnove rada sa GDI grafičkim kontekstom (`CDC`) unutar MFC
 - **Interakcija sa korisnikom:** Rukovanje događajima sa tastature (`OnChar` / `OnKeyDown`) radi dinamičke kontrole prikaza i uključivanja/isključivanja pozadinske mreže (grida).
 - **Geometrijske transformacije i crtanje:** Implementacija funkcija za iscrtavanje proizvoljnih i pravilnih poligona pomoću trigonometrijskih funkcija.
 
+## 📌 Kratak opis urađenog rada (LV02)
+Vežba prikazuje rad sa **svetskim transformacijama** u GDI-ju. Cilj je iscrtavanje generičkog kaktusa (500x500 piksela):
+- **Transformacije:** Implementirane funkcije `Translate`, `Scale` i `Rotate` koje množe tekuću transformacionu matricu (`ModifyWorldTransform`, mod `GM_ADVANCED`) sa leve ili desne strane.
+- **Hijerarhijsko crtanje:** Svaki zglob kaktusa je koordinatni početak za grane koje iz njega izlaze (levo množenje, lokalni koordinatni sistem). Stanje transformacije se čuva i vraća pomoću `GetWorldTransform` / `SetWorldTransform`.
+- **Metafajlovi:** Delovi kaktusa sa bodljama učitavaju se iz EMF metafajlova (`cactus_part.emf`, `cactus_part_light.emf`) i iscrtavaju sa `PlayMetaFile`, uz skaliranje širine prema broju grana.
+- **Interakcija:** Taster `G` uključuje/isključuje mrežu, a svetliji delovi kaktusa rotiraju se tasterima `A`/`D` i `Q`/`E`.
+
+> Napomena: EMF fajlovi moraju biti u radnom direktorijumu aplikacije (npr. folder projekta ili `Debug` / `x64\Debug`).
+
 ## 🚀 Pokretanje projekta
 1. Klonirajte repozitorijum ili preuzmite ZIP fajl.
 2. Otvorite `.sln` fajl rešenja (Solution) u **Visual Studio 2026**.
