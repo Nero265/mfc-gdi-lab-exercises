@@ -129,6 +129,14 @@ void CIND19546View::DrawFigure(CDC* pDC)
 {
 	const float DEG = PI / 180.0f;
 
+	XFORM xOrig; // originalno stanje
+	pDC->GetWorldTransform(&xOrig);
+
+	//rotacija oko centra
+	Translate(pDC, 250, 250, false);
+	Rotate(pDC, -90 * DEG, false);
+	Translate(pDC, -250, -250, false);
+
 	XFORM xInit;
 	pDC->GetWorldTransform(&xInit);
 
@@ -149,65 +157,70 @@ void CIND19546View::DrawFigure(CDC* pDC)
 
 	// ---- leva grana ----
 	{
-		XFORM xBranch, x;
+		XFORM xBranch;
 		pDC->GetWorldTransform(&xBranch);
-		Rotate(pDC, -45 * DEG, false);
-		DrawSegment(pDC, false, 0.5f, 1.0f, true);
+		Rotate(pDC, -45 * DEG + m_angleSegment2, false);
+		DrawSegment(pDC, true, 0.5f, 1.0f, false);
 
-		pDC->GetWorldTransform(&x);
-		Rotate(pDC, -45 * DEG, false);
-		DrawSegment(pDC, false, 0.75f, 0.7f, false);
-		pDC->SetWorldTransform(&x);
-
-		pDC->GetWorldTransform(&x);
-		Rotate(pDC, 45 * DEG, false);
-		DrawSegment(pDC, false, 0.75f, 1.0f, true);
-		DrawJoint(pDC);
-		DrawSegment(pDC, false, 1.1f, 0.9f, false);
-		DrawJoint(pDC);
-		pDC->SetWorldTransform(&x);
-
-		DrawJoint(pDC);
 		pDC->SetWorldTransform(&xBranch);
 	}
 
 	// srednja grana
 	{
-		XFORM xBranch;
+		XFORM xBranch, x, y;
 		pDC->GetWorldTransform(&xBranch);
-		DrawSegment(pDC, false, 0.4f, 0.8f, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, true);
+
+		pDC->GetWorldTransform(&x);
+		Rotate(pDC, -45 * DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, false);
+		pDC->SetWorldTransform(&x);
+
+		pDC->GetWorldTransform(&x);
+		DrawSegment(pDC, false, 0.5f, 1.0f, false);
+
+		pDC->SetWorldTransform(&x);
+		Rotate(pDC, 45 * DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, true);
+
+
+		pDC->GetWorldTransform(&y);
+		Rotate(pDC, -45 * DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, false);
+		pDC->SetWorldTransform(&y);
+
+		pDC->GetWorldTransform(&y);
+		Rotate(pDC, DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, false);
+		pDC->SetWorldTransform(&y);
+
+		pDC->GetWorldTransform(&y);
+		Rotate(pDC, 45 * DEG, false);
+		DrawSegment(pDC, false, 0.5f, 1.0f, false);
+		pDC->SetWorldTransform(&y);
+
+		DrawJoint(pDC);
+
+		pDC->SetWorldTransform(&x);
+		DrawJoint(pDC);
+
+
+
 		pDC->SetWorldTransform(&xBranch);
 	}
 
 	//desna grana 
 	{
-		XFORM xBranch, x, y;
+		XFORM xBranch, x;
 		pDC->GetWorldTransform(&xBranch);
 		Rotate(pDC, 45 * DEG, false);
 		DrawSegment(pDC, false, 0.5f, 1.0f, true);
 
 		pDC->GetWorldTransform(&x);
-		Rotate(pDC, -45 * DEG + m_angleSegment2, false);
-		DrawSegment(pDC, true, 0.75f, 0.9f, false);
+		Rotate(pDC, 0, false);
+		DrawSegment(pDC, true, 1.5f, 1.0f, false);
+                          
 		pDC->SetWorldTransform(&x);
-
-		pDC->GetWorldTransform(&x);
-		Rotate(pDC, 45 * DEG, false);
-		DrawSegment(pDC, false, 0.75f, 1.0f, true);
-
-		pDC->GetWorldTransform(&y);
-		Rotate(pDC, -45 * DEG, false);
-		DrawSegment(pDC, false, 0.75f, 0.75f, false);
-		pDC->SetWorldTransform(&y);
-
-		pDC->GetWorldTransform(&y);
-		Rotate(pDC, 45 * DEG, false);
-		DrawSegment(pDC, false, 0.75f, 0.75f, false);
-		pDC->SetWorldTransform(&y);
-
-		DrawJoint(pDC);                              
-		pDC->SetWorldTransform(&x);
-
 		DrawJoint(pDC);                             
 		pDC->SetWorldTransform(&xBranch);
 	}
@@ -230,6 +243,8 @@ void CIND19546View::DrawFigure(CDC* pDC)
 
 	pDC->SelectObject(pOldBrush);
 	pDC->SelectObject(pOldPen);
+
+	pDC->SetWorldTransform(&xOrig);
 }
 
 void CIND19546View::DrawMetafilePart(CDC* pDC, CString filename, CRect rect)
